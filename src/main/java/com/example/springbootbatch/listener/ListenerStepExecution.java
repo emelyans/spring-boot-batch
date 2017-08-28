@@ -1,10 +1,10 @@
-package com.example.springbootbatch.listeners;
+package com.example.springbootbatch.listener;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 
-public class StepListenerInterface implements StepExecutionListener {
+public class ListenerStepExecution implements StepExecutionListener {
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
@@ -14,6 +14,6 @@ public class StepListenerInterface implements StepExecutionListener {
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         System.out.println("After step ...");
-        return null;
+        return stepExecution.getExitStatus();
     }
 }

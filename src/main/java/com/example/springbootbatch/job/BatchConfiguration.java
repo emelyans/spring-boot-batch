@@ -1,15 +1,18 @@
-package com.example.springbootbatch.configuration;
+package com.example.springbootbatch.job;
 
-import com.example.springbootbatch.listeners.JobExecutionListenerInterface;
-import com.example.springbootbatch.listeners.StepListenerInterface;
+import com.example.springbootbatch.listener.*;
+import com.example.springbootbatch.processor.ProcessorPassThrough;
+import com.example.springbootbatch.reader.ReaderList;
+import com.example.springbootbatch.writer.WriterConsole;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.support.AutomaticJobRegistrar;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
@@ -50,26 +53,48 @@ public class BatchConfiguration {
 
 //    @Autowired
 //    private AutomaticJobRegistrar automaticJobRegistrar;
-
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
                 .tasklet(new Tasklet() {
+
+                    @BeforeStep
+                    public void beforeStep(StepExecution stepExecution) {
+                        System.out.println("Before step (annotation ...");
+                    }
+
                     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
                         System.out.println("Hi!");
                         return RepeatStatus.FINISHED;
                     }
                 })
-                .listener(new StepListenerInterface())
+                .listener(new ListenerReader())
                 .build();
     }
 
     @Bean
-    public Job job(Step step1) throws Exception {
+    public Step step2() {
+        return stepBuilderFactory.get("step2")
+                .chunk(2)
+                .reader(new ReaderList())
+                .processor(new ProcessorPassThrough<>())
+                .writer(new WriterConsole<>())
+                .listener(new ListenerStepExecution())
+                .listener(new ListenerStepChunk())
+                .listener(new ListenerReader())
+                .listener(new ListenerProcess())
+                .listener(new ListenerWriter())
+                .listener(new ListenerSkip())
+                .build();
+    }
+
+    @Bean
+    public Job job(Step step1, Step step2) throws Exception {
         return jobBuilderFactory.get(jobName)
 //                .incrementer(new RunIdIncrementer())
                 .start(step1)
-                .listener(new JobExecutionListenerInterface())
+                .next(step2)
+                .listener(new ListenerJobExecution())
                 .build();
     }
 }

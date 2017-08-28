@@ -1,4 +1,4 @@
-package com.example.springbootbatch.listeners;
+package com.example.springbootbatch.listener;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
@@ -6,7 +6,7 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class JobExecutionListenerInterface implements JobExecutionListener {
+public class ListenerJobExecution implements JobExecutionListener {
 
     @Override
     public void beforeJob(JobExecution jobExecution) {

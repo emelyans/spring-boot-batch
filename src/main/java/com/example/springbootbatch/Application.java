@@ -1,6 +1,6 @@
 package com.example.springbootbatch;
 
-import com.example.springbootbatch.configuration.BatchConfiguration;
+import com.example.springbootbatch.job.BatchConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
