@@ -3,6 +3,7 @@ package com.example.springbootbatch.job;
 import com.example.springbootbatch.listener.*;
 import com.example.springbootbatch.processor.ProcessorPassThrough;
 import com.example.springbootbatch.reader.ReaderList;
+import com.example.springbootbatch.tasklet.TaskletConsole;
 import com.example.springbootbatch.writer.WriterConsole;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -89,11 +90,25 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public Job job(Step step1, Step step2) throws Exception {
+    public Step step3() {
+        return stepBuilderFactory.get("step3")
+                .tasklet(new TaskletConsole())
+                .listener(new ListenerStepExecution())
+                .listener(new ListenerStepChunk())
+                .listener(new ListenerReader())
+                .listener(new ListenerProcess())
+                .listener(new ListenerWriter())
+                .listener(new ListenerSkip())
+                .build();
+    }
+
+    @Bean
+    public Job job(Step step1, Step step2, Step step3) throws Exception {
         return jobBuilderFactory.get(jobName)
 //                .incrementer(new RunIdIncrementer())
                 .start(step1)
                 .next(step2)
+                .next(step3)
                 .listener(new ListenerJobExecution())
                 .build();
     }
