@@ -86,6 +86,7 @@ public class BatchConfiguration {
                 .listener(new ListenerProcess())
                 .listener(new ListenerWriter())
                 .listener(new ListenerSkip())
+                .listener(new ListenerItemFailure())
                 .build();
     }
 
