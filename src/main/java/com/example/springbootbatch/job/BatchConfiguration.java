@@ -14,9 +14,8 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.launch.JobOperator;
-import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -31,8 +30,12 @@ import org.springframework.context.annotation.Configuration;
 @EnableBatchProcessing
 public class BatchConfiguration {
 
-    @Value("${jobName}")
-    private String jobName;
+    @Bean
+    Runner runner() {
+        return new Runner();
+    }
+
+    ;
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -40,20 +43,22 @@ public class BatchConfiguration {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
-    @Autowired
-    private JobRegistry jobRegistry;
-
-    @Autowired
-    private JobRepository jobRepository;
-
-    @Autowired
-    private JobExplorer jobExplorer;
-
-    @Autowired
-    private JobOperator jobOperator;
-
 //    @Autowired
-//    private AutomaticJobRegistrar automaticJobRegistrar;
+//    private AutomaticJobRegistrar automaticJobRegistrar(ApplicationContext applicationContext) {
+//        AutomaticJobRegistrar automaticJobRegistrar = new AutomaticJobRegistrar();
+//        automaticJobRegistrar.setApplicationContext(applicationContext);
+//        automaticJobRegistrar.setJobLoader(new DefaultJobLoader());
+//        return  automaticJobRegistrar;
+//    }
+
+    @Bean
+    public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+        JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
+        jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
+        return jobRegistryBeanPostProcessor;
+    }
+
+
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
@@ -104,9 +109,9 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public Job job(Step step1, Step step2, Step step3) throws Exception {
+    public Job job(@Value("${jobName}") String jobName, Step step1, Step step2, Step step3) throws Exception {
         return jobBuilderFactory.get(jobName)
-//                .incrementer(new RunIdIncrementer())
+                .incrementer(new RunIdIncrementer())
                 .start(step1)
                 .next(step2)
                 .next(step3)
