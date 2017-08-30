@@ -41,6 +41,7 @@ public class TaskletConsole implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         System.out.println("Execute in TaskletConsole ...");
+//        throw new RuntimeException("oops");
         return RepeatStatus.FINISHED;
     }
 }
