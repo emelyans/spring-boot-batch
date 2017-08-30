@@ -37,10 +37,13 @@ public class Runner implements ApplicationRunner {
     @Value("${jobName}")
     private String jobName;
 
+    @Value("${param1}")
+    private String param1;
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
         JobParameters jobParameters = new JobParametersBuilder(new JobParameters())
-                .addString("key1", "1").toJobParameters();
+                .addString("param1", param1).toJobParameters();
         if (restart.equals("true")) {
             System.out.println("Run new instance of job: " + jobName);
             jobOperator.startNextInstance(jobName);
