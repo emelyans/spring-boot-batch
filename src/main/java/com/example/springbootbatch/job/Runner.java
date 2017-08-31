@@ -32,7 +32,7 @@ public class Runner implements ApplicationRunner {
     private JobOperator jobOperator;
 
     @Value("${restart}")
-    private String restart = null;
+    private String restart;
 
     @Value("${jobName}")
     private String jobName;
