@@ -14,6 +14,7 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.configuration.support.ReferenceJobFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -42,13 +43,15 @@ public class BatchConfiguration {
 //        return  automaticJobRegistrar;
 //    }
 
-    @Bean
-    public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
-        JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
-        jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
-        return jobRegistryBeanPostProcessor;
-    }
+//    @Bean
+//    public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+//        JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
+//        jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
+//        return jobRegistryBeanPostProcessor;
+//    }
 
+    @Autowired
+    private JobRegistry jobRegistry;
 
     @Bean
     public Step step1() {
@@ -101,12 +104,16 @@ public class BatchConfiguration {
 
     @Bean
     public Job job(@Value("${jobName}") String jobName, Step step1, Step step2, Step step3) throws Exception {
-        return jobBuilderFactory.get(jobName)
+        Job job = jobBuilderFactory.get(jobName)
                 .incrementer(new RunIdIncrementer())
                 .start(step1)
                 .next(step2)
                 .next(step3)
                 .listener(new ListenerJobExecution())
                 .build();
+
+        jobRegistry.register(new ReferenceJobFactory(job));
+
+        return job;
     }
 }
