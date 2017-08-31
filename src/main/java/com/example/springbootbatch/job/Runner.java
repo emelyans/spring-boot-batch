@@ -1,12 +1,16 @@
 package com.example.springbootbatch.job;
 
+import com.example.springbootbatch.support.CustomJobOperator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.JobOperator;
-import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.JobParametersNotFoundException;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -17,19 +21,10 @@ import org.springframework.context.annotation.Configuration;
 public class Runner implements ApplicationRunner {
 
     @Autowired
-    private Job job;
+    private JobRegistry jobRegistry;
 
     @Autowired
-    private JobLauncher jobLauncher;
-
-    @Autowired
-    private JobRepository jobRepository;
-
-    @Autowired
-    private JobExplorer jobExplorer;
-
-    @Autowired
-    private JobOperator jobOperator;
+    private CustomJobOperator customJobOperator;
 
     @Value("${restart}")
     private String restart;
@@ -41,22 +36,14 @@ public class Runner implements ApplicationRunner {
     private String param1;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) throws NoSuchJobException, JobParametersNotFoundException, JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         JobParameters jobParameters = new JobParametersBuilder(new JobParameters())
                 .addString("param1", param1).toJobParameters();
-        if (restart.equals("true")) {
-            System.out.println("Run new instance of job: " + jobName);
-            jobOperator.startNextInstance(jobName);
-        } else {
-//            Set<Long> runningExecutions = jobOperator.getRunningExecutions(jobName);
-//            if (!runningExecutions.isEmpty()) {
-//                Long runningExecution = runningExecutions.iterator().next();
-//                System.out.println("Restart execution: " + jobOperator.getSummary(runningExecution));
-//                jobOperator.restart(runningExecution); // it doesn't work
-//            } else {
-                System.out.println("Run job: " + jobName);
-                jobLauncher.run(job, jobParameters);
-//            }
-        }
+
+        Job job = jobRegistry.getJob(jobName);
+
+        boolean isRestart = restart.equals("true");
+
+        customJobOperator.run(job, jobParameters, isRestart);
     }
 }
