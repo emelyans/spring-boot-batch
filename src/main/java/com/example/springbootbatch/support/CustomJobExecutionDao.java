@@ -25,7 +25,7 @@ public class CustomJobExecutionDao extends AbstractJdbcBatchMetadataDao {
                 new RowMapper<Long>() {
                     @Override
                     public Long mapRow(ResultSet resultSet, int i) throws SQLException {
-                        return resultSet.getLong(0);
+                        return resultSet.getLong(1);
                     }
                 }, Constants.BUSINESS_PARAMETERS_KEY_JOB_PARAMETER_NAME, jobKeyGenerator.generateKey(jobParameters));
 
