@@ -1,10 +1,10 @@
 package com.example.springbootbatch.support;
 
 import com.example.springbootbatch.Constants;
-import org.springframework.batch.core.DefaultJobKeyGenerator;
 import org.springframework.batch.core.JobKeyGenerator;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
@@ -18,7 +18,8 @@ public class CustomJobExecutionDao extends AbstractJdbcBatchMetadataDao {
 
     private static final String FIND_EXECUTION_ID_BY_PARAM = "SELECT max(JOB_EXECUTION_ID) from %PREFIX%JOB_EXECUTION_PARAMS where KEY_NAME = ? and STRING_VAL = ?";
 
-    private JobKeyGenerator<JobParameters> jobKeyGenerator = new DefaultJobKeyGenerator();
+    @Autowired
+    private JobKeyGenerator<JobParameters> jobKeyGenerator;
 
     public Long getLastRerunExecutionId(final String jobName, final JobParameters jobParameters) {
         List<Long> lastRerunExecutionId = getJdbcTemplate().query(getQuery(FIND_EXECUTION_ID_BY_PARAM),

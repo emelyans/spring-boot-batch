@@ -2,9 +2,10 @@ package com.example.springbootbatch;
 
 import com.example.springbootbatch.job.Runner;
 import com.example.springbootbatch.support.CustomJobExecutionDao;
+import com.example.springbootbatch.support.CustomJobKeyGenerator;
+import org.springframework.batch.core.JobKeyGenerator;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.repository.dao.JdbcJobExecutionDao;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -36,4 +37,9 @@ public class ApplicationConfiguration {
 //        jdbcJobExecutionDao.setJobExecutionIncrementer();
 //        return jdbcJobExecutionDao;
 //    }
+
+    @Bean
+    public JobKeyGenerator<JobParameters> jobKeyGenerator() {
+        return new CustomJobKeyGenerator();
+    }
 }

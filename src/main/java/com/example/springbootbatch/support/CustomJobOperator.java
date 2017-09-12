@@ -35,7 +35,8 @@ public class CustomJobOperator {
 //    @Autowired
 //    private JdbcJobExecutionDao jdbcJobExecutionDao;
 
-    private JobKeyGenerator<JobParameters> jobKeyGenerator = new DefaultJobKeyGenerator();
+    @Autowired
+    private JobKeyGenerator<JobParameters> jobKeyGenerator;
 
     public void run(Job job, JobParameters jobParameters, boolean isRestart) throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException, JobParametersNotFoundException, NoSuchJobException {
 
@@ -82,7 +83,7 @@ public class CustomJobOperator {
         if (id == 1)
             jobParametersBuilder.addString(Constants.BUSINESS_PARAMETERS_KEY_JOB_PARAMETER_NAME, jobKeyGenerator.generateKey(params));
 
-        return jobParametersBuilder.addLong(Constants.RESTART_CMDLINE_OPTION, id).toJobParameters();
+        return jobParametersBuilder.addLong(Constants.RESTART_JOB_PARAMETER_NAME, id).toJobParameters();
     }
 
 }
