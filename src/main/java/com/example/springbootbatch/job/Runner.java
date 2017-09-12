@@ -1,5 +1,6 @@
 package com.example.springbootbatch.job;
 
+import com.example.springbootbatch.Constants;
 import com.example.springbootbatch.support.CustomJobOperator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -32,17 +33,22 @@ public class Runner implements ApplicationRunner {
     @Value("${jobName}")
     private String jobName;
 
-    @Value("${param1}")
+    @Value("${" + Constants.PARAM1_JOB_PARAMETER_NAME + "}")
     private String param1;
+
+    @Value("${" + Constants.PARAM2_JOB_PARAMETER_NAME + "}")
+    private String param2;
 
     @Override
     public void run(ApplicationArguments args) throws NoSuchJobException, JobParametersNotFoundException, JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
         JobParameters jobParameters = new JobParametersBuilder(new JobParameters())
-                .addString("param1", param1).toJobParameters();
+                .addString(Constants.PARAM1_JOB_PARAMETER_NAME, param1)
+                .addString(Constants.PARAM2_JOB_PARAMETER_NAME, param2, false)
+                .toJobParameters();
 
         Job job = jobRegistry.getJob(jobName);
 
-        boolean isRestart = restart.equals("true");
+        boolean isRestart = restart.equals(Constants.RESTART_CMDLINE_OPTION_TRUE);
 
         customJobOperator.run(job, jobParameters, isRestart);
     }

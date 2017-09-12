@@ -1,6 +1,8 @@
 package com.example.springbootbatch.support;
 
 import com.example.springbootbatch.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CustomJobOperator {
+
+    Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private JobLauncher jobLauncher;
@@ -46,6 +50,8 @@ public class CustomJobOperator {
             } else
                 start(job, lastInstanceParameters);
         } else {
+            if (isRestart)
+                LOGGER.warn("Job is configured as RERUN, but no previous executions with provided parameters was found... Job will be started as first run...");
             start(job, jobParameters);
         }
     }
@@ -69,7 +75,7 @@ public class CustomJobOperator {
 
         JobParameters params = (parameters == null) ? new JobParameters() : parameters;
 
-        long id = params.getLong(Constants.RESTART_CMDLINE_OPTION, 0L) + 1;
+        long id = params.getLong(Constants.RESTART_JOB_PARAMETER_NAME, 0L) + 1;
 
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder(params);
 
