@@ -3,6 +3,7 @@ package com.example.springbootbatch;
 import com.example.springbootbatch.job.Runner;
 import com.example.springbootbatch.support.CustomJobExecutionDao;
 import com.example.springbootbatch.support.CustomJobKeyGenerator;
+import org.springframework.batch.core.DefaultJobKeyGenerator;
 import org.springframework.batch.core.JobKeyGenerator;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -40,6 +41,6 @@ public class ApplicationConfiguration {
 
     @Bean
     public JobKeyGenerator<JobParameters> jobKeyGenerator() {
-        return new CustomJobKeyGenerator();
+        return new DefaultJobKeyGenerator();
     }
 }
