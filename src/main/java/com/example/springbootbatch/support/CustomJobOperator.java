@@ -46,13 +46,25 @@ public class CustomJobOperator {
 
         if (lastJobExecution != null) {
             JobParameters lastInstanceParameters = lastJobExecution.getJobParameters();
-            if (isRestart /*|| lastJobExecution.getExitStatus() == ExitStatus.UNKNOWN*/) {
+            if (isRestart) {
+                LOGGER.info("Restart job ...");
                 restart(job, lastInstanceParameters);
-            } else
-                start(job, lastInstanceParameters);
+            } else {
+                if (lastJobExecution.isRunning()) {
+                    LOGGER.error("There is a running or terminated instance of the job. Please investigate and RERUN the job if necessary.");
+                    throw new JobExecutionAlreadyRunningException("There is a running or terminated instance of the job. Please investigate and RERUN the job if necessary.");
+                } else if (lastJobExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
+                    LOGGER.error("Job already completed. Please investigate and RERUN the job if necessary.");
+                    throw new JobInstanceAlreadyCompleteException("Job already completed. Please investigate and RERUN the job if necessary.");
+                } else {
+                    LOGGER.info("Resume job ...");
+                    start(job, lastInstanceParameters);
+                }
+            }
         } else {
             if (isRestart)
-                LOGGER.warn("Job is configured as RERUN, but no previous executions with provided parameters was found... Job will be started as first run...");
+                LOGGER.warn("Job is configured as RERUN, but no previous executions were found... Job will be started as first run...");
+            LOGGER.info("First run of the job ...");
             start(job, jobParameters);
         }
     }
