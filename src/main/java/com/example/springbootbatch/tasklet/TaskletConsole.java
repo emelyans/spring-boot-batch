@@ -1,5 +1,6 @@
 package com.example.springbootbatch.tasklet;
 
+import com.example.springbootbatch.Constants;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.annotation.AfterJob;
 import org.springframework.batch.core.annotation.AfterStep;
@@ -41,6 +42,8 @@ public class TaskletConsole implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         System.out.println("Execute in TaskletConsole ...");
+        boolean isRerun = chunkContext.getStepContext().getJobParameters().containsKey(Constants.RESTART_JOB_PARAMETER_NAME);
+        System.out.println("Is rerun or resume of rerun: " + isRerun);
 //        throw new RuntimeException("oops");
         return RepeatStatus.FINISHED;
     }

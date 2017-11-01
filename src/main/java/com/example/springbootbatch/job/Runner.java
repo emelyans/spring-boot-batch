@@ -7,6 +7,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobParametersNotFoundException;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
@@ -27,7 +28,10 @@ public class Runner implements ApplicationRunner {
     @Autowired
     private CustomJobOperator customJobOperator;
 
-    @Value("${restart}")
+    @Autowired
+    private JobLauncher jobLauncher;
+
+    @Value("${" + Constants.RESTART_CMDLINE_OPTION + "}")
     private String restart;
 
     @Value("${jobName}")
@@ -51,5 +55,6 @@ public class Runner implements ApplicationRunner {
         boolean isRestart = restart.equals(Constants.RESTART_CMDLINE_OPTION_TRUE);
 
         customJobOperator.run(job, jobParameters, isRestart);
+//        jobLauncher.run(job, jobParameters);
     }
 }
