@@ -1,6 +1,7 @@
 package com.example.springbootbatch.support;
 
 import com.example.springbootbatch.Constants;
+import com.example.springbootbatch.job.JobParametersHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.*;
@@ -45,26 +46,31 @@ public class CustomJobOperator {
         JobExecution lastJobExecution = getLastJobExecution(jobName, jobParameters);
 
         if (lastJobExecution != null) {
-            JobParameters lastInstanceParameters = lastJobExecution.getJobParameters();
+            JobParameters lastExecutionParameters = lastJobExecution.getJobParameters();
             if (isRestart) {
-                LOGGER.info("Restart job ...");
-                restart(job, lastInstanceParameters);
+                LOGGER.info("Rerun job (new instance will be created) ...");
+                restart(job, jobParameters, lastExecutionParameters);
             } else {
                 if (lastJobExecution.isRunning()) {
-                    LOGGER.error("There is a running or terminated instance of the job. Please investigate and RERUN the job if necessary.");
-                    throw new JobExecutionAlreadyRunningException("There is a running or terminated instance of the job. Please investigate and RERUN the job if necessary.");
+                    String errorMessage = "There is a running or terminated execution of the job with following parameters: " + JobParametersHelper.allParametersToString(lastExecutionParameters);
+                    LOGGER.error(errorMessage);
+                    LOGGER.error("Please investigate and RERUN the job (use '--rerun=true' command line option) if necessary.");
+                    throw new JobExecutionAlreadyRunningException(errorMessage);
                 } else if (lastJobExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
-                    LOGGER.error("Job already completed. Please investigate and RERUN the job if necessary.");
-                    throw new JobInstanceAlreadyCompleteException("Job already completed. Please investigate and RERUN the job if necessary.");
+                    String errorMessage = "Job with following parameters already completed: " + JobParametersHelper.allParametersToString(lastExecutionParameters);
+                    LOGGER.error(errorMessage);
+                    LOGGER.error("Please investigate and RERUN the job (use '--rerun=true' command line option) if necessary.");
+                    throw new JobInstanceAlreadyCompleteException(errorMessage);
                 } else {
                     LOGGER.info("Resume job ...");
-                    start(job, lastInstanceParameters);
+                    start(job, lastExecutionParameters);
                 }
             }
         } else {
             if (isRestart)
                 LOGGER.warn("Job is configured as RERUN, but no previous executions were found... Job will be started as first run...");
-            LOGGER.info("First run of the job ...");
+            else
+                LOGGER.info("First run of the job ...");
             start(job, jobParameters);
         }
     }
@@ -76,26 +82,25 @@ public class CustomJobOperator {
     }
 
     private void start(Job job, JobParameters jobParameters) throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
+        LOGGER.info("Start job with following parameters: {}", JobParametersHelper.allParametersToString(jobParameters));
         jobLauncher.run(job, jobParameters);
     }
 
-    private void restart(Job job, JobParameters jobParameters) throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
-        JobParameters restartParameters = increaseRestartParameter(jobParameters);
-        start(job, restartParameters);
+    private void restart(Job job, JobParameters newParameters, JobParameters prevExecParameters) throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
+        LOGGER.info("Previous execution parameters: {}", JobParametersHelper.allParametersToString(prevExecParameters));
+        JobParameters rerunParameters = increaseRestartParameter(newParameters, prevExecParameters);
+        LOGGER.info("New execution parameters: {}", JobParametersHelper.allParametersToString(rerunParameters));
+        start(job, rerunParameters);
     }
 
-    public JobParameters increaseRestartParameter(JobParameters parameters) {
+    public JobParameters increaseRestartParameter(JobParameters newParameters, JobParameters parameters) {
 
-        JobParameters params = (parameters == null) ? new JobParameters() : parameters;
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder(newParameters);
 
-        long id = params.getLong(Constants.RESTART_JOB_PARAMETER_NAME, 0L) + 1;
+        jobParametersBuilder.addString(Constants.BUSINESS_PARAMETERS_KEY_JOB_PARAMETER_NAME, jobKeyGenerator.generateKey(newParameters));
+        jobParametersBuilder.addLong(Constants.RESTART_JOB_PARAMETER_NAME, parameters.getLong(Constants.RESTART_JOB_PARAMETER_NAME, 0L) + 1);
 
-        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder(params);
-
-        if (id == 1)
-            jobParametersBuilder.addString(Constants.BUSINESS_PARAMETERS_KEY_JOB_PARAMETER_NAME, jobKeyGenerator.generateKey(params));
-
-        return jobParametersBuilder.addLong(Constants.RESTART_JOB_PARAMETER_NAME, id).toJobParameters();
+        return jobParametersBuilder.toJobParameters();
     }
 
 }
